@@ -3,11 +3,13 @@ const FPS = 30;
 var canvas = document.getElementById("gameCanvas");
 var canvasContext = canvas.getContext("2d");
 
-const TILE_ROW = 12, TILE_COL = 16;
-const TILE_W = 50, TILE_H = 50;
+var has_selected_tile = false;
+var selected_tile_row = -1;
+var selected_tile_col = -1;
+var selected_tile_index = -1;
 
-function isEnemy(sprite) {
-    let enemies = [
+function spriteIsEnemy(sprite) {
+    let enemieSprites = [
         WORLD_SPRITE.ENEMY_PAWN,
         WORLD_SPRITE.ENEMY_ROOK,
         WORLD_SPRITE.ENEMY_KNIGHT,
@@ -16,53 +18,34 @@ function isEnemy(sprite) {
         WORLD_SPRITE.ENEMY_QUEEN
     ];
 
-    for (let i = 0; i < enemies.length; ++i) {
-        if (enemies[i] === sprite) {
+    for (let i = 0; i < enemieSprites.length; ++i) {
+        if (enemieSprites[i] === sprite) {
             return true;
         }
     }
     return false;
 }
 
-const WORLD_SPRITE = {
-    UNOCCUPIED: 0,
-    PLAYER_PAWN: 1,
-    PLAYER_ROOK: 2,
-    PLAYER_KNIGHT: 3,
-    PLAYER_BISHOP: 4,
-    PLAYER_KING: 5,
-    PLAYER_QUEEN: 6,
+function spriteIsPlayer(sprite) {
+    let playerSprites = [
+        WORLD_SPRITE.PLAYER_PAWN,
+        WORLD_SPRITE.PLAYER_ROOK,
+        WORLD_SPRITE.PLAYER_KNIGHT,
+        WORLD_SPRITE.PLAYER_BISHOP,
+        WORLD_SPRITE.PLAYER_KING,
+        WORLD_SPRITE.PLAYER_QUEEN
+    ];
 
-    ENEMY_PAWN: 7,
-    ENEMY_ROOK: 8,
-    ENEMY_KNIGHT: 9,
-    ENEMY_BISHOP: 10,
-    ENEMY_KING: 11,
-    ENEMY_QUEEN: 12,
-
-    BLOCK: 99 // All other stuff
-};
-
-var worldMap = [
-    8, 8, 9, 9,10, 0, 0,12,11, 0, 0,10, 9, 9, 8, 8,
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    2, 2, 3, 3, 4, 0, 0, 5, 6, 0, 0, 4, 3, 3, 2, 2];
-
-
-function tileIndex(row, col) {
-    return row * TILE_COL + col;
+    for (let i = 0; i < playerSprites.length; ++i) {
+        if (playerSprites[i] === sprite) {
+            return true;
+        }
+    }
+    return false;
 }
 
-function colourRect(topX, topY, width, height, colour) {
+function colourRect(topX, topY, width, height, colour, alpha) {
+    canvasContext.globalAlpha = alpha;
     canvasContext.fillStyle = colour;
     canvasContext.fillRect(topX, topY, width, height);
 }
@@ -71,8 +54,8 @@ function drawChessBoard() { // temporary background for debugging
     colourRect(0, 0, canvas.width, canvas.height, "black");
     for (let rowI = 0; rowI < TILE_ROW; ++rowI) {
         for (let colI = 0; colI < TILE_COL; ++colI) {
-            if ((rowI + colI) % 2 == 1) {
-                colourRect(colI * TILE_W, rowI * TILE_H, TILE_W, TILE_H, "white");
+            if ((rowI + colI) % 2 === 1) {
+                colourRect(colI * TILE_W, rowI * TILE_H, TILE_W, TILE_H, "white", 1);
             }
         }
 
@@ -92,6 +75,18 @@ function drawMap() {
 
 function drawGame() {
     drawChessBoard();
+    if (has_selected_tile) {
+        colourRect(selected_tile_col * TILE_W, selected_tile_row * TILE_H, TILE_W, TILE_H, "yellow", 0.5);
+        if (worldMap[selected_tile_index] === WORLD_SPRITE.PLAYER_PAWN) {
+            let moves = getPawnMoves(selected_tile_row, selected_tile_col);
+            for (let i = 0; i < moves.length; ++i) {
+                let currTileIndex = tileIndex(moves[i].row, moves[i].col);
+                if (worldMap[currTileIndex] === WORLD_SPRITE.UNOCCUPIED) {
+                    colourRect(moves[i].col * TILE_W, moves[i].row * TILE_H, TILE_W, TILE_H, "blue", 0.5);
+                }
+            }
+        }
+    }
     drawMap();
 }
 
@@ -103,4 +98,36 @@ function startGame() {
 
 window.onload = function () {
     loadImages();
+
+    canvas.addEventListener("mousedown", function(evt) {
+        let mousePos = getRelativeMousePos(evt);
+        let tileInfo = tileIndexFromPixelCoord(mousePos.x, mousePos.y);
+        selected_tile_col = tileInfo.col;
+        selected_tile_row = tileInfo.row;
+        selected_tile_index = tileInfo.tileIndex;
+        if (spriteIsPlayer(worldMap[selected_tile_index])) {
+            has_selected_tile = !has_selected_tile;
+        } else {
+            has_selected_tile = false;
+        }
+    });
 };
+
+function getPawnMoves(currRow, currCol) {
+    return [
+        {row: currRow - 1, col: currCol},
+        {row: currRow + 1, col: currCol}
+    ];
+}
+
+function getRelativeMousePos(evt) {
+    let rect = canvas.getBoundingClientRect();
+
+    let mouseX = evt.clientX - rect.left;
+    let mouseY = evt.clientY - rect.top;
+
+    return {
+        x: mouseX,
+        y: mouseY
+    };
+}

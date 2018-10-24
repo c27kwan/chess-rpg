@@ -4,7 +4,7 @@ var picsToLoad;
 
 function loadSprite(code, fileName) {
     worldPics[code] = document.createElement("img");
-    if (isEnemy(code)) {
+    if (spriteIsEnemy(code)) {
         worldPics[code].src = "images/purple/" + fileName;
     } else {
         worldPics[code].src = "images/green/" + fileName;
