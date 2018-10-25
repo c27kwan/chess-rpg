@@ -47,3 +47,63 @@ function tileIndexFromPixelCoord(pixelX, pixelY) {
         tileIndex:tileIndex(row, col)
     };
 }
+
+function drawChessBoard() { // temporary background
+    colourRect(0, 0, canvas.width, canvas.height, "black");
+    for (let rowI = 0; rowI < TILE_ROW; ++rowI) {
+        for (let colI = 0; colI < TILE_COL; ++colI) {
+            if (rowI % 2 !== colI % 2) { // change to &1 for performance boost?
+                colourRect(colI * TILE_W, rowI * TILE_H, TILE_W, TILE_H, "white", 1);
+            }
+        }
+
+    }
+}
+
+function drawMap() {
+    for (let rowI = 0; rowI < TILE_ROW; ++rowI) {
+        for (let colI = 0; colI < TILE_COL; ++colI) {
+            let tileSprite = worldMap[tileIndex(rowI, colI)];
+            if (tileSprite !== WORLD_SPRITE.UNOCCUPIED) {
+                let alias = (show_tile_selection && selected_tile_col === colI && selected_tile_row === rowI) || !show_tile_selection ? 1 : 0.5;
+                drawImageAtTile(worldPics[tileSprite], colI * TILE_W, rowI * TILE_H, alias);
+            }
+        }
+    }
+}
+
+function spriteIsEnemy(sprite) {
+    let enemySprites = [
+        WORLD_SPRITE.ENEMY_PAWN,
+        WORLD_SPRITE.ENEMY_ROOK,
+        WORLD_SPRITE.ENEMY_KNIGHT,
+        WORLD_SPRITE.ENEMY_BISHOP,
+        WORLD_SPRITE.ENEMY_KING,
+        WORLD_SPRITE.ENEMY_QUEEN
+    ];
+
+    for (let i = 0; i < enemySprites.length; ++i) {
+        if (enemySprites[i] === sprite) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function spriteIsPlayer(sprite) {
+    let playerSprites = [
+        WORLD_SPRITE.PLAYER_PAWN,
+        WORLD_SPRITE.PLAYER_ROOK,
+        WORLD_SPRITE.PLAYER_KNIGHT,
+        WORLD_SPRITE.PLAYER_BISHOP,
+        WORLD_SPRITE.PLAYER_KING,
+        WORLD_SPRITE.PLAYER_QUEEN
+    ];
+
+    for (let i = 0; i < playerSprites.length; ++i) {
+        if (playerSprites[i] === sprite) {
+            return true;
+        }
+    }
+    return false;
+}
