@@ -1,7 +1,5 @@
 var show_tile_selection = false;
-var selected_tile_row = -1;
-var selected_tile_col = -1;
-var selected_tile_index = -1;
+var selectedTile = {row: -1, col: -1, tileIndex: -1};
 
 function getRelativeMousePos(evt) {
     let rect = canvas.getBoundingClientRect();
@@ -15,86 +13,87 @@ function getRelativeMousePos(evt) {
     };
 }
 
+function getPossibleAttacks() {
+    let next_attacks = [];
+    switch (worldMap[selectedTile.tileIndex]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
+        case WORLD_SPRITE.PLAYER_ROOK:
+            next_attacks = getRookAttacks(selectedTile.row, selectedTile.col);
+            break;
+        case WORLD_SPRITE.PLAYER_PAWN:
+            next_attacks = getPawnAttacks(selectedTile.row, selectedTile.col);
+            break;
+    }
+    return next_attacks;
+}
+
+function getPossibleMoves() {
+    let next_moves = [];
+    switch (worldMap[selectedTile.tileIndex]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
+        case WORLD_SPRITE.PLAYER_ROOK:
+            next_moves = getRookMoves(selectedTile.row, selectedTile.col);
+            break;
+        case WORLD_SPRITE.PLAYER_PAWN:
+            next_moves = getPawnMoves(selectedTile.row, selectedTile.col);
+            break;
+    }
+    return next_moves;
+}
+
 function handleTileSelection(evt) {
     let mousePos = getRelativeMousePos(evt);
-    let tileInfo = tileIndexFromPixelCoord(mousePos.x, mousePos.y);
-    let next_selected_tile_col = tileInfo.col;
-    let next_selected_tile_row = tileInfo.row;
-    let next_selected_tile_index = tileInfo.tileIndex;
+    let nextTile = tileIndexFromPixelCoord(mousePos.x, mousePos.y);
     if (show_tile_selection) {
-        console.log("selected tile [" + selected_tile_row + "," + selected_tile_col + "]" );
-        console.log("next selected tile [" + next_selected_tile_row + "," + next_selected_tile_col + "]" );
-        if (next_selected_tile_index === selected_tile_index) {
+        console.log("selected tile [" + selectedTile.row + "," + selectedTile.col + "]" );
+        console.log("next selected tile [" + nextTile.row + "," + nextTile.col + "]" );
+        if (nextTile.tileIndex === selectedTile.tileIndex) {
             // todo: show menu
-        } else if (spriteIsPlayer(worldMap[next_selected_tile_index])) { // not the same chess piece, so just switch selection
-            selected_tile_col = next_selected_tile_col;
-            selected_tile_row = next_selected_tile_row;
-            selected_tile_index = next_selected_tile_index;
-        } else if (spriteIsEnemy(worldMap[next_selected_tile_index])) {
-            let next_attacks = [];
-            switch (worldMap[selected_tile_index]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
-                case WORLD_SPRITE.PLAYER_ROOK:
-                    next_attacks = getRookAttacks(selected_tile_row, selected_tile_col);
-                    break;
-                case WORLD_SPRITE.PLAYER_PAWN:
-                    next_attacks = getPawnAttacks(selected_tile_row, selected_tile_col);
-                    break;
-            }
+        } else if (spriteIsPlayer(worldMap[nextTile.tileIndex])) { // not the same chess piece, so just switch selection
+            selectedTile = nextTile;
+        } else if (spriteIsEnemy(worldMap[nextTile.tileIndex])) {
+            let next_attacks = getPossibleAttacks();
             for (let i = 0; i < next_attacks.length; ++i) {
-                if (next_attacks[i].row === next_selected_tile_row && next_attacks[i].col === next_selected_tile_col) {
+                if (next_attacks[i].row === nextTile.row && next_attacks[i].col === nextTile.col) {
                     // attack
-                    worldMap[next_selected_tile_index] = worldMap[selected_tile_index];
-                    worldMap[selected_tile_index] = WORLD_SPRITE.UNOCCUPIED;
+                    // only if enemy dies
+                    worldMap[nextTile.tileIndex] = worldMap[selectedTile.tileIndex];
+                    worldMap[selectedTile.tileIndex] = WORLD_SPRITE.UNOCCUPIED;
                     break;
                 }
             }
             show_tile_selection = false;
         } else { // picked something that isn't occupied. ASSUMPTION: There isn't any other obstacle on map
-            let next_moves = [];
-            switch (worldMap[selected_tile_index]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
-                case WORLD_SPRITE.PLAYER_ROOK:
-                    next_moves = getRookMoves(selected_tile_row, selected_tile_col);
-                    break;
-                case WORLD_SPRITE.PLAYER_PAWN:
-                    next_moves = getPawnMoves(selected_tile_row, selected_tile_col);
-                    break;
-            }
-
+            let next_moves = getPossibleMoves();
             for (let i = 0; i < next_moves.length; ++i) {
-                if (next_moves[i].row === next_selected_tile_row && next_moves[i].col === next_selected_tile_col) {
+                if (next_moves[i].row === nextTile.row && next_moves[i].col === nextTile.col) {
                     // move player
-                    worldMap[next_selected_tile_index] = worldMap[selected_tile_index];
-                    worldMap[selected_tile_index] = WORLD_SPRITE.UNOCCUPIED;
+                    worldMap[nextTile.tileIndex] = worldMap[selectedTile.tileIndex];
+                    worldMap[selectedTile.tileIndex] = WORLD_SPRITE.UNOCCUPIED;
                     break;
                 }
             }
-            show_tile_selection = false;
+            // todo: show menu
+            show_tile_selection = false; // remove when this line if show menu
         }
-    } else if (spriteIsPlayer(worldMap[next_selected_tile_index])) {
+    } else if (spriteIsPlayer(worldMap[nextTile.tileIndex])) {
         show_tile_selection = true;
-        selected_tile_index = next_selected_tile_index;
-        selected_tile_col = next_selected_tile_col;
-        selected_tile_row = next_selected_tile_row;
+        selectedTile = nextTile;
     }
 }
 
 function drawHint() {
     if (show_tile_selection) {
-        colourRect(selected_tile_col * TILE_W, selected_tile_row * TILE_H, TILE_W, TILE_H, "yellow", 0.5);
-        let moves;
-        let attacks;
-        switch (worldMap[selected_tile_index]) {
+        colourRect(selectedTile.col * TILE_W, selectedTile.row * TILE_H, TILE_W, TILE_H, "yellow", 0.5);
+        let moves = [];
+        let attacks = [];
+        switch (worldMap[selectedTile.tileIndex]) {
             case WORLD_SPRITE.PLAYER_PAWN:
-                moves = getPawnMoves(selected_tile_row, selected_tile_col);
-                attacks = getPawnAttacks(selected_tile_row, selected_tile_col);
+                moves = getPawnMoves(selectedTile.row, selectedTile.col);
+                attacks = getPawnAttacks(selectedTile.row, selectedTile.col);
                 break;
             case WORLD_SPRITE.PLAYER_ROOK:
-                moves = getRookMoves(selected_tile_row, selected_tile_col);
-                attacks = getRookAttacks(selected_tile_row, selected_tile_col);
+                moves = getRookMoves(selectedTile.row, selectedTile.col);
+                attacks = getRookAttacks(selectedTile.row, selectedTile.col);
                 break;
-            default:
-                moves = []; // placeholders
-                attacks = [];
         }
         for (let i = 0; i < moves.length; ++i) {
             colourRect(moves[i].col * TILE_W, moves[i].row * TILE_H, TILE_W, TILE_H, "blue", 0.5);

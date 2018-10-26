@@ -65,7 +65,7 @@ function drawMap() {
         for (let colI = 0; colI < TILE_COL; ++colI) {
             let tileSprite = worldMap[tileIndex(rowI, colI)];
             if (tileSprite !== WORLD_SPRITE.UNOCCUPIED) {
-                let alias = (show_tile_selection && selected_tile_col === colI && selected_tile_row === rowI) || !show_tile_selection ? 1 : 0.5;
+                let alias = (show_tile_selection && selectedTile.col === colI && selectedTile.row === rowI) || !show_tile_selection ? 1 : 0.5;
                 drawImageAtTile(worldPics[tileSprite], colI * TILE_W, rowI * TILE_H, alias);
             }
         }
