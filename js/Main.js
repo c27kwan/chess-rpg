@@ -15,6 +15,10 @@ function startGame() {
     }, 1000 / FPS);
 }
 
+function endGame() {
+    alert("Green wins!"); // todo: fully implement this so that it displays the move before the win message
+}
+
 window.onload = function () {
     loadImages();
     canvas.addEventListener("mousedown", handleTileSelection);

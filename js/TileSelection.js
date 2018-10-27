@@ -22,6 +22,9 @@ function getPossibleAttacks() {
         case WORLD_SPRITE.PLAYER_PAWN:
             next_attacks = getPawnAttacks(selectedTile.row, selectedTile.col);
             break;
+        case WORLD_SPRITE.PLAYER_KING:
+            next_attacks = getKingAttacks(selectedTile.row, selectedTile.col);
+            break;
     }
     return next_attacks;
 }
@@ -34,6 +37,9 @@ function getPossibleMoves() {
             break;
         case WORLD_SPRITE.PLAYER_PAWN:
             next_moves = getPawnMoves(selectedTile.row, selectedTile.col);
+            break;
+        case WORLD_SPRITE.PLAYER_KING:
+            next_moves = getKingMoves(selectedTile.row, selectedTile.col);
             break;
     }
     return next_moves;
@@ -55,8 +61,12 @@ function handleTileSelection(evt) {
                 if (next_attacks[i].row === nextTile.row && next_attacks[i].col === nextTile.col) {
                     // attack
                     // only if enemy dies
+                    let removedChessPiece = worldMap[nextTile.tileIndex];
                     worldMap[nextTile.tileIndex] = worldMap[selectedTile.tileIndex];
                     worldMap[selectedTile.tileIndex] = WORLD_SPRITE.UNOCCUPIED;
+                    if (removedChessPiece === WORLD_SPRITE.ENEMY_KING) {
+                        endGame();
+                    }
                     break;
                 }
             }
@@ -83,18 +93,8 @@ function handleTileSelection(evt) {
 function drawHint() {
     if (show_tile_selection) {
         colourRect(selectedTile.col * TILE_W, selectedTile.row * TILE_H, TILE_W, TILE_H, "yellow", 0.5);
-        let moves = [];
-        let attacks = [];
-        switch (worldMap[selectedTile.tileIndex]) {
-            case WORLD_SPRITE.PLAYER_PAWN:
-                moves = getPawnMoves(selectedTile.row, selectedTile.col);
-                attacks = getPawnAttacks(selectedTile.row, selectedTile.col);
-                break;
-            case WORLD_SPRITE.PLAYER_ROOK:
-                moves = getRookMoves(selectedTile.row, selectedTile.col);
-                attacks = getRookAttacks(selectedTile.row, selectedTile.col);
-                break;
-        }
+        let moves = getPossibleMoves();
+        let attacks = getPossibleAttacks();
         for (let i = 0; i < moves.length; ++i) {
             colourRect(moves[i].col * TILE_W, moves[i].row * TILE_H, TILE_W, TILE_H, "blue", 0.5);
         }
