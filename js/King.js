@@ -34,7 +34,7 @@ function getKingAttacks(currRow, currCol) {
             return false;
         }
         let currTileIndex = tileIndex(row, col);
-        return spriteIsEnemy(worldMap[currTileIndex]);
+        return currentTurnPlayer.isEnemy(worldMap[currTileIndex]);
     }
 
     let possibleAttackTiles = [

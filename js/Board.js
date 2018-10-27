@@ -20,19 +20,31 @@ const WORLD_SPRITE = {
     BLOCK: 99 // All other stuff
 };
 
-var worldMap = [
-    8, 8, 9, 9,10, 0, 0,12,11, 0, 0,10, 9, 9, 8, 8,
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    2, 2, 3, 3, 4, 0, 0, 5, 6, 0, 0, 4, 3, 3, 2, 2];
+const SPRITE_SET = [
+    {
+        name: "Green",
+        sprites: [
+            WORLD_SPRITE.PLAYER_PAWN,
+            WORLD_SPRITE.PLAYER_ROOK,
+            WORLD_SPRITE.PLAYER_KNIGHT,
+            WORLD_SPRITE.PLAYER_BISHOP,
+            WORLD_SPRITE.PLAYER_KING,
+            WORLD_SPRITE.PLAYER_QUEEN
+        ]
+    },
+    {
+        name: "Purple",
+        sprites: [
+            WORLD_SPRITE.ENEMY_PAWN,
+            WORLD_SPRITE.ENEMY_ROOK,
+            WORLD_SPRITE.ENEMY_KNIGHT,
+            WORLD_SPRITE.ENEMY_BISHOP,
+            WORLD_SPRITE.ENEMY_KING,
+            WORLD_SPRITE.ENEMY_QUEEN
+        ]
+    }
+];
+var worldMap;
 
 function tileIndex(row, col) {
     return row * TILE_COL + col;
@@ -44,7 +56,7 @@ function tileIndexFromPixelCoord(pixelX, pixelY) {
     return {
         row: row,
         col: col,
-        tileIndex:tileIndex(row, col)
+        tileIndex: tileIndex(row, col)
     };
 }
 
@@ -70,40 +82,4 @@ function drawMap() {
             }
         }
     }
-}
-
-function spriteIsEnemy(sprite) {
-    let enemySprites = [
-        WORLD_SPRITE.ENEMY_PAWN,
-        WORLD_SPRITE.ENEMY_ROOK,
-        WORLD_SPRITE.ENEMY_KNIGHT,
-        WORLD_SPRITE.ENEMY_BISHOP,
-        WORLD_SPRITE.ENEMY_KING,
-        WORLD_SPRITE.ENEMY_QUEEN
-    ];
-
-    for (let i = 0; i < enemySprites.length; ++i) {
-        if (enemySprites[i] === sprite) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function spriteIsPlayer(sprite) {
-    let playerSprites = [
-        WORLD_SPRITE.PLAYER_PAWN,
-        WORLD_SPRITE.PLAYER_ROOK,
-        WORLD_SPRITE.PLAYER_KNIGHT,
-        WORLD_SPRITE.PLAYER_BISHOP,
-        WORLD_SPRITE.PLAYER_KING,
-        WORLD_SPRITE.PLAYER_QUEEN
-    ];
-
-    for (let i = 0; i < playerSprites.length; ++i) {
-        if (playerSprites[i] === sprite) {
-            return true;
-        }
-    }
-    return false;
 }

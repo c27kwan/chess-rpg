@@ -1,5 +1,5 @@
-var show_tile_selection = false;
-var selectedTile = {row: -1, col: -1, tileIndex: -1};
+var show_tile_selection;
+var selectedTile;
 
 function getRelativeMousePos(evt) {
     let rect = canvas.getBoundingClientRect();
@@ -17,12 +17,15 @@ function getPossibleAttacks() {
     let next_attacks = [];
     switch (worldMap[selectedTile.tileIndex]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
         case WORLD_SPRITE.PLAYER_ROOK:
+        case WORLD_SPRITE.ENEMY_ROOK:
             next_attacks = getRookAttacks(selectedTile.row, selectedTile.col);
             break;
         case WORLD_SPRITE.PLAYER_PAWN:
+        case WORLD_SPRITE.ENEMY_PAWN:
             next_attacks = getPawnAttacks(selectedTile.row, selectedTile.col);
             break;
         case WORLD_SPRITE.PLAYER_KING:
+        case WORLD_SPRITE.ENEMY_KING:
             next_attacks = getKingAttacks(selectedTile.row, selectedTile.col);
             break;
     }
@@ -33,12 +36,15 @@ function getPossibleMoves() {
     let next_moves = [];
     switch (worldMap[selectedTile.tileIndex]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
         case WORLD_SPRITE.PLAYER_ROOK:
+        case WORLD_SPRITE.ENEMY_ROOK:
             next_moves = getRookMoves(selectedTile.row, selectedTile.col);
             break;
         case WORLD_SPRITE.PLAYER_PAWN:
+        case WORLD_SPRITE.ENEMY_PAWN:
             next_moves = getPawnMoves(selectedTile.row, selectedTile.col);
             break;
         case WORLD_SPRITE.PLAYER_KING:
+        case WORLD_SPRITE.ENEMY_KING:
             next_moves = getKingMoves(selectedTile.row, selectedTile.col);
             break;
     }
@@ -53,9 +59,9 @@ function handleTileSelection(evt) {
         console.log("next selected tile [" + nextTile.row + "," + nextTile.col + "]" );
         if (nextTile.tileIndex === selectedTile.tileIndex) {
             // todo: show menu
-        } else if (spriteIsPlayer(worldMap[nextTile.tileIndex])) { // not the same chess piece, so just switch selection
+        } else if (currentTurnPlayer.isSprite(worldMap[nextTile.tileIndex])) { // not the same chess piece, so just switch selection
             selectedTile = nextTile;
-        } else if (spriteIsEnemy(worldMap[nextTile.tileIndex])) {
+        } else if (currentTurnPlayer.isEnemy(worldMap[nextTile.tileIndex])) {
             let next_attacks = getPossibleAttacks();
             for (let i = 0; i < next_attacks.length; ++i) {
                 if (next_attacks[i].row === nextTile.row && next_attacks[i].col === nextTile.col) {
@@ -64,8 +70,10 @@ function handleTileSelection(evt) {
                     let removedChessPiece = worldMap[nextTile.tileIndex];
                     worldMap[nextTile.tileIndex] = worldMap[selectedTile.tileIndex];
                     worldMap[selectedTile.tileIndex] = WORLD_SPRITE.UNOCCUPIED;
-                    if (removedChessPiece === WORLD_SPRITE.ENEMY_KING) {
+                    if (removedChessPiece === WORLD_SPRITE.ENEMY_KING || removedChessPiece === WORLD_SPRITE.PLAYER_KING) {
                         endGame();
+                    } else {
+                        nextTurn();
                     }
                     break;
                 }
@@ -78,13 +86,14 @@ function handleTileSelection(evt) {
                     // move player
                     worldMap[nextTile.tileIndex] = worldMap[selectedTile.tileIndex];
                     worldMap[selectedTile.tileIndex] = WORLD_SPRITE.UNOCCUPIED;
+                    nextTurn();
                     break;
                 }
             }
             // todo: show menu
             show_tile_selection = false; // remove when this line if show menu
         }
-    } else if (spriteIsPlayer(worldMap[nextTile.tileIndex])) {
+    } else if (currentTurnPlayer.isSprite(worldMap[nextTile.tileIndex])) {
         show_tile_selection = true;
         selectedTile = nextTile;
     }
