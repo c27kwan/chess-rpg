@@ -3,7 +3,7 @@ class Rook extends ChessPiece {
         super(4, 2, 0);
     }
 
-    getMoves(currRow, currCol) {
+    static getVerticalHorizontalMoves(currRow, currCol) {
         let possibleMoves = [];
 
         for (let rowI = currRow - 1; rowI >= 0; --rowI) {
@@ -53,7 +53,7 @@ class Rook extends ChessPiece {
         return possibleMoves;
     }
 
-    getAttacks(currRow, currCol) {
+    static getVerticalHorizontalAttacks(currRow, currCol) {
         let possibleAttacks = [];
 
         for (let rowI = currRow - 1; rowI >= 0 ; --rowI) {
@@ -87,6 +87,14 @@ class Rook extends ChessPiece {
             }
         }
         return possibleAttacks;
+    }
+
+    getMoves(currRow, currCol) {
+        return Rook.getVerticalHorizontalMoves(currRow, currCol);
+    }
+
+    getAttacks(currRow, currCol) {
+        return Rook.getVerticalHorizontalAttacks(currRow, currCol);
     }
 
     getCounterPosition(currRow, currCol, defenseRow, defenseCol) {

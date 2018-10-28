@@ -8,6 +8,10 @@ function setPlayersSprites(player1SpriteSet, player2SpriteSet) {
     player2.init(player2SpriteSet, player1SpriteSet);
 }
 
+function getNextTurnPlayer() {
+    return (currentTurnPlayer === player1) ? player2 : player1;
+}
+
 function Player() {
     this.init = function (playerSpriteSet, enemySpriteSet) {
         this.playerName = playerSpriteSet.name;

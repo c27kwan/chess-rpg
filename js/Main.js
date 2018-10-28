@@ -22,7 +22,7 @@ function drawHealthBar() {
 
         colourRect(tileInfo.col * TILE_W + HEALTH_BAR_GAP_W, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, fullHpBar, HEALTH_BAR_H, "#400002", 1);
         colourRect(tileInfo.col * TILE_W + HEALTH_BAR_GAP_W, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, percentHpLeft, HEALTH_BAR_H, "red", 1);
-        // TODO:consider removing this so that it is only displayed highlighted
+        // TODO:consider removing this so that it is only displayed on highlighted tiles
         drawText(value.hp, (tileInfo.col + 1) * TILE_W - HEALTH_BAR_GAP_W * 2, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H -1, "red");
     }
     player1.tileIndexToChessPiece.forEach(drawHPBarWithPercentage);
@@ -76,5 +76,5 @@ window.onload = function () {
 };
 
 function nextTurn() {
-    currentTurnPlayer = (currentTurnPlayer === player1) ? player2 : player1;
+    currentTurnPlayer = getNextTurnPlayer();
 }

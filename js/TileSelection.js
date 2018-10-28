@@ -14,16 +14,16 @@ function getRelativeMousePos(evt) {
 }
 
 function getPossibleAttacks() {
-    let next_attacks = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex).getAttacks(selectedTile.row, selectedTile.col);
-    return next_attacks;
+    let chessPiece = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex);
+    return chessPiece.getAttacks(selectedTile.row, selectedTile.col);
 }
 
 function getPossibleMoves() {
-    let next_moves = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex).getMoves(selectedTile.row, selectedTile.col);
-    return next_moves;
+    let chessPiece = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex);
+    return chessPiece.getMoves(selectedTile.row, selectedTile.col);
 }
 
-function handleTileSelection(evt) {
+function handleTileSelection(evt) { // TODO: Handle stalemate (player can't move or attack).
     let mousePos = getRelativeMousePos(evt);
     let nextTile = tileIndexFromPixelCoord(mousePos.x, mousePos.y);
     if (show_tile_selection) {
@@ -35,9 +35,10 @@ function handleTileSelection(evt) {
             let next_attacks = getPossibleAttacks();
             for (let i = 0; i < next_attacks.length; ++i) {
                 if (next_attacks[i].row === nextTile.row && next_attacks[i].col === nextTile.col) {
+                    // todo: show menu before attack
                     // attack
                     let attackingPiece = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex);
-                    let defendingPlayer = (currentTurnPlayer === player1) ? player2 : player1;
+                    let defendingPlayer = getNextTurnPlayer();
                     let defendingPiece = defendingPlayer.tileIndexToChessPiece.get(nextTile.tileIndex);
                     let damage = attackingPiece.attack - defendingPiece.defense;
                     defendingPiece.hp -= damage;
@@ -76,7 +77,7 @@ function handleTileSelection(evt) {
                 }
             }
             // todo: show menu
-            show_tile_selection = false; // remove when this line if show menu
+            show_tile_selection = false; // remove this line if show menu
         }
     } else if (currentTurnPlayer.isSprite(worldMap[nextTile.tileIndex])) {
         show_tile_selection = true;
