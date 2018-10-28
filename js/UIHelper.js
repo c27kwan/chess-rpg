@@ -8,3 +8,8 @@ function drawImageAtTile(sprite, x, y, alpha) {
     canvasContext.globalAlpha = alpha;
     canvasContext.drawImage(sprite, x, y);
 }
+
+function drawText(msg,  x, y, colour) {
+    canvasContext.fillStyle = colour;
+    canvasContext.fillText(msg, x, y);
+}

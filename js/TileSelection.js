@@ -55,8 +55,6 @@ function handleTileSelection(evt) {
     let mousePos = getRelativeMousePos(evt);
     let nextTile = tileIndexFromPixelCoord(mousePos.x, mousePos.y);
     if (show_tile_selection) {
-        console.log("selected tile [" + selectedTile.row + "," + selectedTile.col + "]" );
-        console.log("next selected tile [" + nextTile.row + "," + nextTile.col + "]" );
         if (nextTile.tileIndex === selectedTile.tileIndex) {
             // todo: show menu
         } else if (currentTurnPlayer.isSprite(worldMap[nextTile.tileIndex])) { // not the same chess piece, so just switch selection
@@ -66,13 +64,48 @@ function handleTileSelection(evt) {
             for (let i = 0; i < next_attacks.length; ++i) {
                 if (next_attacks[i].row === nextTile.row && next_attacks[i].col === nextTile.col) {
                     // attack
-                    // only if enemy dies
-                    let removedChessPiece = worldMap[nextTile.tileIndex];
-                    worldMap[nextTile.tileIndex] = worldMap[selectedTile.tileIndex];
-                    worldMap[selectedTile.tileIndex] = WORLD_SPRITE.UNOCCUPIED;
-                    if (removedChessPiece === WORLD_SPRITE.ENEMY_KING || removedChessPiece === WORLD_SPRITE.PLAYER_KING) {
-                        endGame();
+                    let attackingPiece = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex);
+                    let defendingPlayer = (currentTurnPlayer === player1) ? player2 : player1;
+                    let defendingPiece = defendingPlayer.tileIndexToChessPiece.get(nextTile.tileIndex);
+                    let damage = attackingPiece.attack - defendingPiece.defense;
+                    defendingPiece.hp -= damage;
+                    // TODO: Draw damage (below line doesn't work because it gets drawn over)
+                    // drawText(damage, nextTile.col * TILE_W, nextTile.row * TILE_H, "red");
+
+                    if (defendingPiece.hp <= 0 ) { // enemy dies
+                        defendingPlayer.tileIndexToChessPiece.delete(nextTile.tileIndex);
+                        currentTurnPlayer.movePiece(selectedTile.tileIndex, nextTile.tileIndex);
+                        if (defendingPiece.sprite === WORLD_SPRITE.ENEMY_KING || defendingPiece.sprite === WORLD_SPRITE.PLAYER_KING) {
+                            endGame();
+                        } else {
+                            nextTurn();
+                        }
                     } else {
+                        // Move chess piece to distance -1 of target.  CLASS INVARIANT: you can move a piece to itself.
+                        let newRowPos = selectedTile.row;
+                        let newColPos = selectedTile.col;
+                        switch (worldMap[selectedTile.tileIndex]) {
+                            case WORLD_SPRITE.PLAYER_KING:
+                            case WORLD_SPRITE.ENEMY_KING:
+                            case WORLD_SPRITE.PLAYER_PAWN:
+                            case WORLD_SPRITE.ENEMY_PAWN:
+                                // stay where you are
+                                break;
+                            case WORLD_SPRITE.PLAYER_ROOK:
+                            case WORLD_SPRITE.ENEMY_ROOK:
+                                if (selectedTile.row < nextTile.row) {
+                                    newRowPos = nextTile.row - 1;
+                                } else if (selectedTile.row > nextTile.row){
+                                    newRowPos = nextTile.row + 1;
+                                } else if (selectedTile.col < nextTile.col) {
+                                    newColPos = nextTile.col - 1;
+                                } else {
+                                    newColPos = nextTile.col + 1;
+                                }
+                                break;
+                        }
+                        currentTurnPlayer.movePiece(selectedTile.tileIndex, tileIndexFromRowCol(newRowPos, newColPos));
+                        // TODO: Defending piece counters if it doesn't die and attackingPiece is in range of defending piece.
                         nextTurn();
                     }
                     break;
@@ -84,8 +117,7 @@ function handleTileSelection(evt) {
             for (let i = 0; i < next_moves.length; ++i) {
                 if (next_moves[i].row === nextTile.row && next_moves[i].col === nextTile.col) {
                     // move player
-                    worldMap[nextTile.tileIndex] = worldMap[selectedTile.tileIndex];
-                    worldMap[selectedTile.tileIndex] = WORLD_SPRITE.UNOCCUPIED;
+                    currentTurnPlayer.movePiece(selectedTile.tileIndex, nextTile.tileIndex);
                     nextTurn();
                     break;
                 }

@@ -1,13 +1,13 @@
 function getPawnMoves(currRow, currCol) {
     let possibleMoves = [];
     if (currRow - 1 >= 0) {
-        let forwardIndex = tileIndex(currRow - 1, currCol);
+        let forwardIndex = tileIndexFromRowCol(currRow - 1, currCol);
         if (worldMap[forwardIndex] === WORLD_SPRITE.UNOCCUPIED) {
             possibleMoves.push({row: currRow - 1, col: currCol})
         }
     }
     if (currRow + 1 < TILE_ROW) {
-        let backwardIndex = tileIndex(currRow + 1, currCol);
+        let backwardIndex = tileIndexFromRowCol(currRow + 1, currCol);
         if (worldMap[backwardIndex] === WORLD_SPRITE.UNOCCUPIED) {
             possibleMoves.push({row: currRow + 1, col: currCol})
         }
@@ -20,7 +20,7 @@ function getPawnAttacks(currRow, currCol) {
         if (row < 0 || row >= TILE_ROW || col < 0 || col >= TILE_COL) {
             return false;
         }
-        let currTileIndex = tileIndex(row, col);
+        let currTileIndex = tileIndexFromRowCol(row, col);
         return currentTurnPlayer.isEnemy(worldMap[currTileIndex]);
     }
 

@@ -46,8 +46,12 @@ const SPRITE_SET = [
 ];
 var worldMap;
 
-function tileIndex(row, col) {
+function tileIndexFromRowCol(row, col) {
     return row * TILE_COL + col;
+}
+
+function getRowColFromTileIndex(tileIndex) {
+    return {row: Math.floor(tileIndex/TILE_COL), col: tileIndex % TILE_COL};
 }
 
 function tileIndexFromPixelCoord(pixelX, pixelY) {
@@ -56,7 +60,7 @@ function tileIndexFromPixelCoord(pixelX, pixelY) {
     return {
         row: row,
         col: col,
-        tileIndex: tileIndex(row, col)
+        tileIndex: tileIndexFromRowCol(row, col)
     };
 }
 
@@ -75,7 +79,7 @@ function drawChessBoard() { // temporary background
 function drawMap() {
     for (let rowI = 0; rowI < TILE_ROW; ++rowI) {
         for (let colI = 0; colI < TILE_COL; ++colI) {
-            let tileSprite = worldMap[tileIndex(rowI, colI)];
+            let tileSprite = worldMap[tileIndexFromRowCol(rowI, colI)];
             if (tileSprite !== WORLD_SPRITE.UNOCCUPIED) {
                 let alias = (show_tile_selection && selectedTile.col === colI && selectedTile.row === rowI) || !show_tile_selection ? 1 : 0.5;
                 drawImageAtTile(worldPics[tileSprite], colI * TILE_W, rowI * TILE_H, alias);

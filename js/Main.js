@@ -8,7 +8,28 @@ function drawGame() {
     drawChessBoard();
     drawHint();
     drawMap();
+    drawHealthBar();
 }
+
+
+const HEALTH_BAR_GAP_W = 6, HEALTH_BAR_GAP_H = 1, HEALTH_BAR_H = 5;
+
+function drawHealthBar() {
+    function drawHPBarWithPercentage(value, key) {
+        let tileInfo = getRowColFromTileIndex(key);
+        let fullHpBar = TILE_W - HEALTH_BAR_GAP_W * 2;
+        let percentHpLeft = Math.ceil(fullHpBar * (value.hp/value.maxHp));
+
+        colourRect(tileInfo.col * TILE_W + HEALTH_BAR_GAP_W, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, fullHpBar, HEALTH_BAR_H, "#400002", 1);
+        colourRect(tileInfo.col * TILE_W + HEALTH_BAR_GAP_W, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, percentHpLeft, HEALTH_BAR_H, "red", 1);
+        // TODO:consider removing this so that it is only displayed highlighted
+        drawText(value.hp, (tileInfo.col + 1) * TILE_W - HEALTH_BAR_GAP_W * 2, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H -1, "red");
+    }
+    player1.tileIndexToChessPiece.forEach(drawHPBarWithPercentage);
+    player2.tileIndexToChessPiece.forEach(drawHPBarWithPercentage);
+}
+
+
 
 function startGame() {
     setInterval(function () {

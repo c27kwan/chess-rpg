@@ -3,7 +3,7 @@ function getKingMoves(currRow, currCol) {
         if (row < 0 || row >= TILE_ROW || col < 0 || col >= TILE_COL) {
             return false;
         }
-        let currTileIndex = tileIndex(row, col);
+        let currTileIndex = tileIndexFromRowCol(row, col);
         return worldMap[currTileIndex] === WORLD_SPRITE.UNOCCUPIED;
     }
 
@@ -33,7 +33,7 @@ function getKingAttacks(currRow, currCol) {
         if (row < 0 || row >= TILE_ROW || col < 0 || col >= TILE_COL) {
             return false;
         }
-        let currTileIndex = tileIndex(row, col);
+        let currTileIndex = tileIndexFromRowCol(row, col);
         return currentTurnPlayer.isEnemy(worldMap[currTileIndex]);
     }
 
