@@ -14,40 +14,12 @@ function getRelativeMousePos(evt) {
 }
 
 function getPossibleAttacks() {
-    let next_attacks = [];
-    switch (worldMap[selectedTile.tileIndex]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
-        case WORLD_SPRITE.PLAYER_ROOK:
-        case WORLD_SPRITE.ENEMY_ROOK:
-            next_attacks = getRookAttacks(selectedTile.row, selectedTile.col);
-            break;
-        case WORLD_SPRITE.PLAYER_PAWN:
-        case WORLD_SPRITE.ENEMY_PAWN:
-            next_attacks = getPawnAttacks(selectedTile.row, selectedTile.col);
-            break;
-        case WORLD_SPRITE.PLAYER_KING:
-        case WORLD_SPRITE.ENEMY_KING:
-            next_attacks = getKingAttacks(selectedTile.row, selectedTile.col);
-            break;
-    }
+    let next_attacks = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex).getAttacks(selectedTile.row, selectedTile.col);
     return next_attacks;
 }
 
 function getPossibleMoves() {
-    let next_moves = [];
-    switch (worldMap[selectedTile.tileIndex]) { // CLASS INVARIANT: CAN ONLY SELECT PLAYERS
-        case WORLD_SPRITE.PLAYER_ROOK:
-        case WORLD_SPRITE.ENEMY_ROOK:
-            next_moves = getRookMoves(selectedTile.row, selectedTile.col);
-            break;
-        case WORLD_SPRITE.PLAYER_PAWN:
-        case WORLD_SPRITE.ENEMY_PAWN:
-            next_moves = getPawnMoves(selectedTile.row, selectedTile.col);
-            break;
-        case WORLD_SPRITE.PLAYER_KING:
-        case WORLD_SPRITE.ENEMY_KING:
-            next_moves = getKingMoves(selectedTile.row, selectedTile.col);
-            break;
-    }
+    let next_moves = currentTurnPlayer.tileIndexToChessPiece.get(selectedTile.tileIndex).getMoves(selectedTile.row, selectedTile.col);
     return next_moves;
 }
 
@@ -75,35 +47,16 @@ function handleTileSelection(evt) {
                     if (defendingPiece.hp <= 0 ) { // enemy dies
                         defendingPlayer.tileIndexToChessPiece.delete(nextTile.tileIndex);
                         currentTurnPlayer.movePiece(selectedTile.tileIndex, nextTile.tileIndex);
-                        if (defendingPiece.sprite === WORLD_SPRITE.ENEMY_KING || defendingPiece.sprite === WORLD_SPRITE.PLAYER_KING) {
+                        if (defendingPiece instanceof King) {
                             endGame();
                         } else {
                             nextTurn();
                         }
                     } else {
-                        // Move chess piece to distance -1 of target.  CLASS INVARIANT: you can move a piece to itself.
-                        let newRowPos = selectedTile.row;
-                        let newColPos = selectedTile.col;
-                        switch (worldMap[selectedTile.tileIndex]) {
-                            case WORLD_SPRITE.PLAYER_KING:
-                            case WORLD_SPRITE.ENEMY_KING:
-                            case WORLD_SPRITE.PLAYER_PAWN:
-                            case WORLD_SPRITE.ENEMY_PAWN:
-                                // stay where you are
-                                break;
-                            case WORLD_SPRITE.PLAYER_ROOK:
-                            case WORLD_SPRITE.ENEMY_ROOK:
-                                if (selectedTile.row < nextTile.row) {
-                                    newRowPos = nextTile.row - 1;
-                                } else if (selectedTile.row > nextTile.row){
-                                    newRowPos = nextTile.row + 1;
-                                } else if (selectedTile.col < nextTile.col) {
-                                    newColPos = nextTile.col - 1;
-                                } else {
-                                    newColPos = nextTile.col + 1;
-                                }
-                                break;
-                        }
+                        // Move chess piece to distance -1 of target.  You can move a piece to the same place.
+                        let newTilePosition = attackingPiece.getCounterPosition(selectedTile.row, selectedTile.col, nextTile.row, nextTile.col);
+                        let newRowPos = newTilePosition.row;
+                        let newColPos = newTilePosition.col;
                         currentTurnPlayer.movePiece(selectedTile.tileIndex, tileIndexFromRowCol(newRowPos, newColPos));
                         // TODO: Defending piece counters if it doesn't die and attackingPiece is in range of defending piece.
                         nextTurn();

@@ -8,28 +8,42 @@ function setPlayersSprites(player1SpriteSet, player2SpriteSet) {
     player2.init(player2SpriteSet, player1SpriteSet);
 }
 
-
-function ChessPiece() { // TODO: Make this a class and extend from it.
-    this.init = function (sprite) {
-        this.maxHp = 2;
-        this.hp = 2; // hard coded for now
-        this.attack = 1;
-        this.defense = 0;
-        this.sprite = sprite;
-    }
-}
-
 function Player() {
     this.init = function (playerSpriteSet, enemySpriteSet) {
         this.playerName = playerSpriteSet.name;
         this.playerSprites = playerSpriteSet.sprites;
         this.enemySprites = enemySpriteSet.sprites;
-        this.tileIndexToChessPiece = new Map();
+        this.tileIndexToChessPiece = new Map(); // TODO: Consider moving this to WorldMap instead.
 
         for (let i = 0; i < worldMap.length; ++i) {
             if (this.isSprite(worldMap[i])) {
-                let chessPiece = new ChessPiece();
-                chessPiece.init(worldMap[i], i);
+                let chessPiece;
+                switch (worldMap[i]) {
+                    case WORLD_SPRITE.PLAYER_PAWN:
+                    case WORLD_SPRITE.ENEMY_PAWN:
+                        chessPiece = new Pawn();
+                        break;
+                    case WORLD_SPRITE.PLAYER_ROOK:
+                    case WORLD_SPRITE.ENEMY_ROOK:
+                        chessPiece = new Rook();
+                        break;
+                    case WORLD_SPRITE.PLAYER_KNIGHT:
+                    case WORLD_SPRITE.ENEMY_KNIGHT:
+                        chessPiece = new Knight();
+                        break;
+                    case WORLD_SPRITE.PLAYER_BISHOP:
+                    case WORLD_SPRITE.ENEMY_BISHOP:
+                        chessPiece = new Bishop();
+                        break;
+                    case WORLD_SPRITE.PLAYER_KING:
+                    case WORLD_SPRITE.ENEMY_KING:
+                        chessPiece = new King();
+                        break;
+                    case WORLD_SPRITE.PLAYER_QUEEN:
+                    case WORLD_SPRITE.ENEMY_QUEEN:
+                        chessPiece = new Queen();
+                        break;
+                }
                 this.tileIndexToChessPiece.set(i, chessPiece);
             }
         }
