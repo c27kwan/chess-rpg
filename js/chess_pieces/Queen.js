@@ -40,7 +40,7 @@ class Queen extends ChessPiece {
         } else {
             newColPos = defenseCol + 1;
         }
-        
+
         return {row:newRowPos, col:newColPos};
     }
 }

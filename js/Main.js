@@ -3,33 +3,55 @@ const FPS = 30;
 var canvas = document.getElementById("gameCanvas");
 var canvasContext = canvas.getContext("2d");
 var gameEnded;
+var showStatNumbers;
 
 function drawGame() {
     drawChessBoard();
     drawHint();
     drawMap();
-    drawHealthBar();
+    drawUnitStats();
 }
 
 
 const HEALTH_BAR_GAP_W = 6, HEALTH_BAR_GAP_H = 1, HEALTH_BAR_H = 5;
+const HEALTH_BAR_BORDER_GAP = 2;
+const FONT_SIZE_GAP_H = 8, FONT_SIZE_GAP_W = 8;
 
-function drawHealthBar() {
-    function drawHPBarWithPercentage(value, key) {
-        let tileInfo = getRowColFromTileIndex(key);
+
+function drawUnitStats() {
+    function drawHPBarWithStat(row, col, hp, maxHp) {
         let fullHpBar = TILE_W - HEALTH_BAR_GAP_W * 2;
-        let percentHpLeft = Math.ceil(fullHpBar * (value.hp/value.maxHp));
+        let percentHpLeft = Math.ceil(fullHpBar * (hp/maxHp));
 
-        colourRect(tileInfo.col * TILE_W + HEALTH_BAR_GAP_W, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, fullHpBar, HEALTH_BAR_H, "#400002", 1);
-        colourRect(tileInfo.col * TILE_W + HEALTH_BAR_GAP_W, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, percentHpLeft, HEALTH_BAR_H, "red", 1);
-        // TODO:consider removing this so that it is only displayed on highlighted tiles
-        drawText(value.hp, (tileInfo.col + 1) * TILE_W - HEALTH_BAR_GAP_W * 2, (tileInfo.row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H -1, "red");
+        if (showStatNumbers) {
+            colourRect(col * TILE_W + HEALTH_BAR_BORDER_GAP, (row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, fullHpBar, HEALTH_BAR_H, "#400002", 1);
+            colourRect(col * TILE_W + HEALTH_BAR_BORDER_GAP, (row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, percentHpLeft, HEALTH_BAR_H, "red", 1);
+            drawText(hp, (col + 1) * TILE_W - HEALTH_BAR_GAP_W - HEALTH_BAR_BORDER_GAP, (row  + 1) * TILE_H  - HEALTH_BAR_GAP_H, "red");
+        } else {
+            colourRect(col * TILE_W + HEALTH_BAR_GAP_W, (row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, fullHpBar, HEALTH_BAR_H, "#400002", 1);
+            colourRect(col * TILE_W + HEALTH_BAR_GAP_W, (row  + 1) * TILE_H  - HEALTH_BAR_GAP_H - HEALTH_BAR_H, percentHpLeft, HEALTH_BAR_H, "red", 1);
+        }
     }
-    player1.tileIndexToChessPiece.forEach(drawHPBarWithPercentage);
-    player2.tileIndexToChessPiece.forEach(drawHPBarWithPercentage);
+    function drawAttackAndDefense(row, col, atk, def) {
+        drawText("A:" + atk, (col) * TILE_W + HEALTH_BAR_BORDER_GAP , (row )* TILE_H + FONT_SIZE_GAP_H, "blue");
+        drawText("D:" + def, (col + 1) * TILE_W - HEALTH_BAR_GAP_W - HEALTH_BAR_BORDER_GAP - FONT_SIZE_GAP_W, (row ) * TILE_H + FONT_SIZE_GAP_H, "blue");
+    }
+
+    function drawStats(value, key) {
+        let tileInfo = getRowColFromTileIndex(key);
+        drawHPBarWithStat(tileInfo.row, tileInfo.col, value.hp, value.maxHp);
+        if (showStatNumbers) {
+            drawAttackAndDefense(tileInfo.row, tileInfo.col, value.attack, value.defense);
+        }
+    }
+
+    player1.tileIndexToChessPiece.forEach(drawStats);
+    player2.tileIndexToChessPiece.forEach(drawStats);
 }
 
-
+function toggleStatDisplay() {
+    showStatNumbers = !showStatNumbers;
+}
 
 function startGame() {
     setInterval(function () {
@@ -38,7 +60,8 @@ function startGame() {
 }
 
 function endGame() {
-    alert(currentTurnPlayer.playerName + " wins!"); // todo: fully implement this so that it displays the move before the win message
+    // todo: replace this so that it displays the move before the win message
+    alert(currentTurnPlayer.playerName + " wins! Click on board to start a new game.");
     gameEnded = true;
 }
 
@@ -60,12 +83,17 @@ function resetGame() {
         2, 2, 3, 3, 4, 0, 0, 5, 6, 0, 0, 4, 3, 3, 2, 2];
     currentTurnPlayer = player1;
     gameEnded = false;
+    player1.setChessPieces();
+    player2.setChessPieces();
 }
 
 window.onload = function () {
-    resetGame();
     setPlayersSprites(SPRITE_SET[0], SPRITE_SET[1]);
+    resetGame();
     loadImages();
+
+    document.getElementById("toggleStatDisplayButton").addEventListener("click", toggleStatDisplay);
+
     canvas.addEventListener("mousedown", function (evt) {
         if (gameEnded) {
             resetGame();

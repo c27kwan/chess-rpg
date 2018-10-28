@@ -17,8 +17,39 @@ function Player() {
         this.playerName = playerSpriteSet.name;
         this.playerSprites = playerSpriteSet.sprites;
         this.enemySprites = enemySpriteSet.sprites;
-        this.tileIndexToChessPiece = new Map(); // TODO: Consider moving this to WorldMap instead.
+    };
 
+    this.isEnemy = function (sprite) {
+        for (let i = 0; i < this.enemySprites.length; ++i) {
+            if (this.enemySprites[i] === sprite) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    this.isSprite = function (sprite) {
+        for (let i = 0; i < this.playerSprites.length; ++i) {
+            if (this.playerSprites[i] === sprite) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    this.movePiece = function(fromTileIndex, toTileIndex) {
+        if (fromTileIndex === toTileIndex) {
+            return;
+        }
+        worldMap[toTileIndex] = worldMap[fromTileIndex];
+        worldMap[fromTileIndex] = WORLD_SPRITE.UNOCCUPIED;
+        let chessPiece = this.tileIndexToChessPiece.get(fromTileIndex);
+        this.tileIndexToChessPiece.delete(fromTileIndex);
+        this.tileIndexToChessPiece.set(toTileIndex, chessPiece);
+    };
+
+    this.setChessPieces = function () {  // TODO: Consider moving this to WorldMap instead.
+        this.tileIndexToChessPiece = new Map();
         for (let i = 0; i < worldMap.length; ++i) {
             if (this.isSprite(worldMap[i])) {
                 let chessPiece;
@@ -51,34 +82,5 @@ function Player() {
                 this.tileIndexToChessPiece.set(i, chessPiece);
             }
         }
-    };
-
-    this.isEnemy = function (sprite) {
-        for (let i = 0; i < this.enemySprites.length; ++i) {
-            if (this.enemySprites[i] === sprite) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.isSprite = function (sprite) {
-        for (let i = 0; i < this.playerSprites.length; ++i) {
-            if (this.playerSprites[i] === sprite) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.movePiece = function(fromTileIndex, toTileIndex) {
-        if (fromTileIndex === toTileIndex) {
-            return;
-        }
-        worldMap[toTileIndex] = worldMap[fromTileIndex];
-        worldMap[fromTileIndex] = WORLD_SPRITE.UNOCCUPIED;
-        let chessPiece = this.tileIndexToChessPiece.get(fromTileIndex);
-        this.tileIndexToChessPiece.delete(fromTileIndex);
-        this.tileIndexToChessPiece.set(toTileIndex, chessPiece);
     }
 }
